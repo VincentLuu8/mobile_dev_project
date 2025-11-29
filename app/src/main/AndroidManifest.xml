@@ -12,23 +12,42 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Mobile_dev_project">
 
-        <!-- 👇 Add this activity for your restaurant list screen -->
+        <!-- ⭐ SPLASH SCREEN (NEW) -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Mobile_dev_project">
+
+            <!-- SplashActivity is now the launcher -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ⭐ MAIN ENTRY SCREEN (after splash) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Mobile_dev_project" />
+
+        <!-- ⭐ RESTAURANT LIST SCREEN -->
         <activity
             android:name=".RestaurantListActivity"
             android:exported="false" />
 
-        <!-- Existing main activity (launcher) -->
+        <!-- ⭐ DETAILS SCREEN (NEW) -->
         <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.Mobile_dev_project">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:name=".DetailsActivity"
+            android:exported="false" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <!-- ⭐ ABOUT SCREEN (NEW) -->
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false" />
+
     </application>
+
 
 </manifest>

@@ -104,7 +104,8 @@ fun RestaurantListScreen() {
                         restaurant = restaurant,
                         onEmail = { shareByEmail(context, it) },
                         onFacebook = { shareOnFacebook(context, it) },
-                        onTwitter = { shareOnTwitter(context, it) }
+                        onTwitter = { shareOnTwitter(context, it) },
+                        onDetails = { openDetails(context, it) }
                     )
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                 }
@@ -118,7 +119,8 @@ fun RestaurantItemRow(
     restaurant: Restaurant,
     onEmail: (Restaurant) -> Unit,
     onFacebook: (Restaurant) -> Unit,
-    onTwitter: (Restaurant) -> Unit
+    onTwitter: (Restaurant) -> Unit,
+    onDetails: (Restaurant) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -160,6 +162,10 @@ fun RestaurantItemRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Button(onClick = { onDetails(restaurant) }) {
+                Text("Details")
+            }
+
             Button(onClick = { onEmail(restaurant) }) {
                 Text("Email")
             }
@@ -225,3 +231,16 @@ fun shareOnTwitter(context: Context, restaurant: Restaurant) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     context.startActivity(intent)
 }
+
+fun openDetails(context: Context, restaurant: Restaurant) {
+    val intent = Intent(context, DetailsActivity::class.java).apply {
+        putExtra("name", restaurant.name)
+        putExtra("address", restaurant.address)
+        putExtra("phone", restaurant.phone)
+        putExtra("description", restaurant.description)
+        putExtra("tags", restaurant.tags)
+        putExtra("rating", restaurant.rating)
+    }
+    context.startActivity(intent)
+}
+

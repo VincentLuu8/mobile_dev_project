@@ -1,5 +1,6 @@
 package com.example.mobile_dev_project
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -19,13 +21,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.mobile_dev_project.data.AppDatabase
 import com.example.mobile_dev_project.data.Restaurant
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -216,5 +222,157 @@ fun RestaurantFormScreen() {
         ) {
             Text("View Saved Restaurants")
         }
+    }
+}
+
+@Composable
+fun DetailsScreen(
+    name: String,
+    address: String,
+    phone: String,
+    description: String,
+    tags: String,
+    rating: Float
+) {
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp)
+    ) {
+
+        Text(
+            text = name,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.height(12.dp))
+
+        if (address.isNotBlank()) {
+            Text("Address: $address")
+            Spacer(Modifier.height(8.dp))
+        }
+
+        if (phone.isNotBlank()) {
+            Text("Phone: $phone")
+            Spacer(Modifier.height(8.dp))
+        }
+
+        if (tags.isNotBlank()) {
+            Text("Tags: $tags")
+            Spacer(Modifier.height(8.dp))
+        }
+
+        Text("Rating: ${rating.toInt()} stars")
+        Spacer(Modifier.height(16.dp))
+
+        if (description.isNotBlank()) {
+            Text("Description:")
+            Text(description)
+        }
+
+        Spacer(Modifier.height(30.dp))
+
+        Button(
+            onClick = {
+                val uri = "google.navigation:q=${Uri.encode(address)}"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri)).apply {
+                    setPackage("com.google.android.apps.maps")
+                }
+                try {
+                    context.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    val browser = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(
+                            "https://www.google.com/maps/dir/?api=1&destination=${
+                                Uri.encode(
+                                    address
+                                )
+                            }"
+                        )
+                    )
+                    context.startActivity(browser)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Get Directions")
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                val shareText = """
+                    Restaurant: $name
+                    Address: $address
+                    Phone: $phone
+                    Tags: $tags
+                    
+                    $description
+                """.trimIndent()
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "Restaurant: $name")
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                }
+
+                context.startActivity(Intent.createChooser(intent, "Share via"))
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Share")
+        }
+    }
+}
+
+@Composable
+fun AboutScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.Top
+    ) {
+
+        Text("About This App", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(16.dp))
+
+        Text("Team Members:", fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(8.dp))
+
+        Text("• Khaila Franco - Student ID")
+        Text("• Member 2 - Student ID")
+        Text("• Member 3 - Student ID")
+
+        Spacer(Modifier.height(24.dp))
+
+        Text("Personal Restaurant Guide app for COMP3074.")
+    }
+}
+
+@Composable
+fun SplashScreen(onTimeout: () -> Unit) {
+
+    LaunchedEffect(Unit) {
+        delay(1500) // 1.5 seconds
+        onTimeout()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(40.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_splash_logo),
+            contentDescription = "App Logo",
+            tint = Color.White,
+            modifier = Modifier.size(130.dp)
+        )
     }
 }
