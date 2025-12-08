@@ -16,13 +16,12 @@ class SplashActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                Surface {
-                    SplashScreen(onTimeout = {
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
-                    })
+                SplashScreen {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
                 }
             }
         }
     }
 }
+

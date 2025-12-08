@@ -48,7 +48,6 @@ fun RestaurantListScreen() {
     var restaurants by remember { mutableStateOf(emptyList<Restaurant>()) }
     var searchText by remember { mutableStateOf("") }
 
-    // load data once when the screen opens
     LaunchedEffect(Unit) {
         val data = withContext(Dispatchers.IO) {
             restaurantDao.getAll()
@@ -56,16 +55,12 @@ fun RestaurantListScreen() {
         restaurants = data
     }
 
-    // simple search on name + tags
     val filtered = remember(restaurants, searchText) {
         val q = searchText.trim().lowercase()
-        if (q.isEmpty()) {
-            restaurants
-        } else {
-            restaurants.filter { r ->
-                r.name.lowercase().contains(q) ||
-                        r.tags.lowercase().contains(q)
-            }
+        if (q.isEmpty()) restaurants
+        else restaurants.filter {
+            it.name.lowercase().contains(q) ||
+                    it.tags.lowercase().contains(q)
         }
     }
 
@@ -74,6 +69,7 @@ fun RestaurantListScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
+
         Text(
             text = "Saved Restaurants",
             style = MaterialTheme.typography.headlineMedium
@@ -90,145 +86,97 @@ fun RestaurantListScreen() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (filtered.isEmpty()) {
-            Text(
-                text = "Nothing matches your search.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(filtered) { restaurant ->
-                    RestaurantItemRow(
-                        restaurant = restaurant,
-                        onEmail = { shareByEmail(context, it) },
-                        onFacebook = { shareOnFacebook(context, it) },
-                        onTwitter = { shareOnTwitter(context, it) },
-                        onDetails = { openDetails(context, it) }
-                    )
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-                }
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(filtered) { restaurant ->
+                RestaurantItemRow(
+                    restaurant = restaurant,
+                    onEmail = { shareByEmail(context, it) },
+                    onFacebook = { shareOnFacebook(context, it) },
+                    onTwitter = { shareOnTwitter(context, it) },
+                    onDetails = { openDetails(context, it) },
+                    onMap = { openMap(context, it) } // ✅ new in-app map
+                )
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
             }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RestaurantItemRow(
     restaurant: Restaurant,
     onEmail: (Restaurant) -> Unit,
     onFacebook: (Restaurant) -> Unit,
     onTwitter: (Restaurant) -> Unit,
-    onDetails: (Restaurant) -> Unit
+    onDetails: (Restaurant) -> Unit,
+    onMap: (Restaurant) -> Unit
 ) {
+
     Column(
-        modifier = Modifier
+        Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 6.dp)
     ) {
-        Text(
-            text = restaurant.name,
-            style = MaterialTheme.typography.titleMedium
-        )
+
+        Text(restaurant.name, style = MaterialTheme.typography.titleMedium)
 
         if (restaurant.tags.isNotBlank()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Tags: ${restaurant.tags}",
-                style = MaterialTheme.typography.bodySmall
-            )
+            Text("Tags: ${restaurant.tags}")
         }
 
         if (restaurant.description.isNotBlank()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = restaurant.description,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Text(restaurant.description)
         }
 
         if (restaurant.address.isNotBlank()) {
+            Text("Address: ${restaurant.address}")
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(onClick = { onDetails(restaurant) }) {
+                    Text("Details")
+                }
+
+                Button(onClick = { onMap(restaurant) }) {
+                    Text("Map")
+                }
+
+                Button(onClick = { onEmail(restaurant) }) {
+                    Text("Email")
+                }
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Address: ${restaurant.address}",
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(onClick = { onDetails(restaurant) }) {
-                Text("Details")
-            }
-
-            Button(onClick = { onEmail(restaurant) }) {
-                Text("Email")
-            }
-
-            TextButton(onClick = { onFacebook(restaurant) }) {
-                Text("Facebook")
-            }
-
-            TextButton(onClick = { onTwitter(restaurant) }) {
-                Text("Twitter")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(onClick = { onFacebook(restaurant) }) {
+                    Text("Facebook")
+                }
+                TextButton(onClick = { onTwitter(restaurant) }) {
+                    Text("Twitter")
+                }
             }
         }
     }
 }
 
-// ===== sharing helpers =====
+// ===== Helpers =====
 
-fun shareByEmail(context: Context, restaurant: Restaurant) {
-    val subject = "Check out this restaurant: ${restaurant.name}"
-
-    val body = buildString {
-        appendLine("Restaurant: ${restaurant.name}")
-        if (restaurant.address.isNotBlank()) appendLine("Address: ${restaurant.address}")
-        if (restaurant.phone.isNotBlank()) appendLine("Phone: ${restaurant.phone}")
-        if (restaurant.tags.isNotBlank()) appendLine("Tags: ${restaurant.tags}")
-        appendLine()
-        if (restaurant.description.isNotBlank()) appendLine(restaurant.description)
+fun openMap(context: Context, restaurant: Restaurant) {
+    val intent = Intent(context, MapsActivity::class.java).apply {
+        putExtra("name", restaurant.name)
+        putExtra("address", restaurant.address)
     }
-
-    val intent = Intent(Intent.ACTION_SENDTO).apply {
-        data = Uri.parse("mailto:")
-        putExtra(Intent.EXTRA_SUBJECT, subject)
-        putExtra(Intent.EXTRA_TEXT, body)
-    }
-
-    if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
-    }
-}
-
-fun shareOnFacebook(context: Context, restaurant: Restaurant) {
-    val text = "I found this place: ${restaurant.name}"
-
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, text)
-        `package` = "com.facebook.katana"
-    }
-
-    if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
-    } else {
-        val url = "https://www.facebook.com/sharer/sharer.php?u=" +
-                Uri.encode("https://maps.google.com/?q=${Uri.encode(restaurant.name)}")
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        context.startActivity(browserIntent)
-    }
-}
-
-fun shareOnTwitter(context: Context, restaurant: Restaurant) {
-    val text = "I found this restaurant: ${restaurant.name}"
-    val url = "https://twitter.com/intent/tweet?text=" + Uri.encode(text)
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     context.startActivity(intent)
 }
 
@@ -244,3 +192,27 @@ fun openDetails(context: Context, restaurant: Restaurant) {
     context.startActivity(intent)
 }
 
+fun shareByEmail(context: Context, restaurant: Restaurant) {
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("mailto:")
+        putExtra(Intent.EXTRA_SUBJECT, "Check out: ${restaurant.name}")
+        putExtra(Intent.EXTRA_TEXT, restaurant.description)
+    }
+    context.startActivity(intent)
+}
+
+fun shareOnFacebook(context: Context, restaurant: Restaurant) {
+    val intent = Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse("https://www.facebook.com/sharer/sharer.php?u=${Uri.encode(restaurant.name)}")
+    )
+    context.startActivity(intent)
+}
+
+fun shareOnTwitter(context: Context, restaurant: Restaurant) {
+    val intent = Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse("https://twitter.com/intent/tweet?text=${Uri.encode(restaurant.name)}")
+    )
+    context.startActivity(intent)
+}

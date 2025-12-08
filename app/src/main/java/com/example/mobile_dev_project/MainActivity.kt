@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -177,20 +179,16 @@ fun RestaurantFormScreen() {
                     return@TextButton
                 }
 
-                val uri = "geo:0,0?q=${Uri.encode(address)}"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri)).apply {
-                    setPackage("com.google.android.apps.maps")
+                val intent = Intent(context, MapsActivity::class.java).apply {
+                    putExtra("address", address)
                 }
 
-                if (intent.resolveActivity(context.packageManager) != null) {
-                    context.startActivity(intent)
-                } else {
-                    Toast.makeText(context, "Google Maps not installed", Toast.LENGTH_SHORT).show()
-                }
+                context.startActivity(intent)
             }
         ) {
             Text("View on Map")
         }
+
 
         TextButton(
             onClick = {
@@ -199,16 +197,11 @@ fun RestaurantFormScreen() {
                     return@TextButton
                 }
 
-                val uri = "google.navigation:q=${Uri.encode(address)}"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri)).apply {
-                    setPackage("com.google.android.apps.maps")
+                val intent = Intent(context, MapsActivity::class.java).apply {
+                    putExtra("address", address)
                 }
 
-                if (intent.resolveActivity(context.packageManager) != null) {
-                    context.startActivity(intent)
-                } else {
-                    Toast.makeText(context, "Google Maps not installed", Toast.LENGTH_SHORT).show()
-                }
+                context.startActivity(intent)
             }
         ) {
             Text("Get Directions")
@@ -222,6 +215,16 @@ fun RestaurantFormScreen() {
         ) {
             Text("View Saved Restaurants")
         }
+
+        TextButton(
+            onClick = {
+                val intent = Intent(context, AboutActivity::class.java)
+                context.startActivity(intent)
+            }
+        ) {
+            Text("About")
+        }
+
     }
 }
 
@@ -276,25 +279,10 @@ fun DetailsScreen(
 
         Button(
             onClick = {
-                val uri = "google.navigation:q=${Uri.encode(address)}"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri)).apply {
-                    setPackage("com.google.android.apps.maps")
+                val intent = Intent(context, MapsActivity::class.java).apply {
+                    putExtra("address", address)
                 }
-                try {
-                    context.startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
-                    val browser = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(
-                            "https://www.google.com/maps/dir/?api=1&destination=${
-                                Uri.encode(
-                                    address
-                                )
-                            }"
-                        )
-                    )
-                    context.startActivity(browser)
-                }
+                context.startActivity(intent)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -344,9 +332,9 @@ fun AboutScreen() {
         Text("Team Members:", fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
 
-        Text("• Khaila Franco - Student ID")
-        Text("• Member 2 - Student ID")
-        Text("• Member 3 - Student ID")
+        Text("• Khaila Franco - 101364236")
+        Text("• Regina Slonimsky - 101491915")
+        Text("• Vincent Luu - 101239401")
 
         Spacer(Modifier.height(24.dp))
 
@@ -358,21 +346,20 @@ fun AboutScreen() {
 fun SplashScreen(onTimeout: () -> Unit) {
 
     LaunchedEffect(Unit) {
-        delay(1500) // 1.5 seconds
+        delay(1500)
         onTimeout()
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(40.dp),
+            .background(Color(0xFFD8B4FE)), // pastel purple background
         contentAlignment = Alignment.Center
     ) {
-        Icon(
+        Image(
             painter = painterResource(id = R.drawable.ic_splash_logo),
-            contentDescription = "App Logo",
-            tint = Color.White,
-            modifier = Modifier.size(130.dp)
+            contentDescription = "Splash Logo",
+            modifier = Modifier.size(180.dp)
         )
     }
 }
