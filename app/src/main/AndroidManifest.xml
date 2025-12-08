@@ -12,12 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Mobile_dev_project">
 
-        <!-- 👇 Add this activity for your restaurant list screen -->
+        <!-- Add this activity for your restaurant list screen -->
         <activity
             android:name=".RestaurantListActivity"
             android:exported="false" />
 
-        <!-- Existing main activity (launcher) -->
+        <!--Existing main activity (launcher) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
