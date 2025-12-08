@@ -21,7 +21,7 @@ class MapsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Read address passed from MainActivity / Details
+        // Read address passed from MainActivity / Details
         val address = intent.getStringExtra("address") ?: ""
 
         setContent {
