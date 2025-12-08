@@ -17,7 +17,7 @@
             android:name=".RestaurantListActivity"
             android:exported="false" />
 
-        <!--Existing main activity (launcher)-->
+        <!-- Existing main activity (launcher) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
