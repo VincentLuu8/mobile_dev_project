@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -48,6 +49,7 @@ fun RestaurantListScreen() {
     var restaurants by remember { mutableStateOf(emptyList<Restaurant>()) }
     var searchText by remember { mutableStateOf("") }
 
+    // Load the data once when screen opens
     LaunchedEffect(Unit) {
         val data = withContext(Dispatchers.IO) {
             restaurantDao.getAll()
@@ -94,7 +96,7 @@ fun RestaurantListScreen() {
                     onFacebook = { shareOnFacebook(context, it) },
                     onTwitter = { shareOnTwitter(context, it) },
                     onDetails = { openDetails(context, it) },
-                    onMap = { openMap(context, it) } // ✅ new in-app map
+                    onMap = { openMap(context, it) }
                 )
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
             }
@@ -102,7 +104,6 @@ fun RestaurantListScreen() {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RestaurantItemRow(
     restaurant: Restaurant,
@@ -182,6 +183,8 @@ fun openMap(context: Context, restaurant: Restaurant) {
 
 fun openDetails(context: Context, restaurant: Restaurant) {
     val intent = Intent(context, DetailsActivity::class.java).apply {
+        // 👇 pass id so DetailsActivity can delete this exact row
+        putExtra("id", restaurant.id)
         putExtra("name", restaurant.name)
         putExtra("address", restaurant.address)
         putExtra("phone", restaurant.phone)
@@ -193,12 +196,29 @@ fun openDetails(context: Context, restaurant: Restaurant) {
 }
 
 fun shareByEmail(context: Context, restaurant: Restaurant) {
-    val intent = Intent(Intent.ACTION_SENDTO).apply {
-        data = Uri.parse("mailto:")
-        putExtra(Intent.EXTRA_SUBJECT, "Check out: ${restaurant.name}")
-        putExtra(Intent.EXTRA_TEXT, restaurant.description)
+    val subject = "Check out: ${restaurant.name}"
+
+    val body = buildString {
+        appendLine("Restaurant: ${restaurant.name}")
+        if (restaurant.address.isNotBlank()) appendLine("Address: ${restaurant.address}")
+        if (restaurant.phone.isNotBlank()) appendLine("Phone: ${restaurant.phone}")
+        if (restaurant.tags.isNotBlank()) appendLine("Tags: ${restaurant.tags}")
+        appendLine()
+        if (restaurant.description.isNotBlank()) appendLine(restaurant.description)
     }
-    context.startActivity(intent)
+
+    val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("mailto:")
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, body)
+    }
+
+    if (emailIntent.resolveActivity(context.packageManager) != null) {
+        val chooser = Intent.createChooser(emailIntent, "Send email with:")
+        context.startActivity(chooser)
+    } else {
+        Toast.makeText(context, "No email app found on this device", Toast.LENGTH_SHORT).show()
+    }
 }
 
 fun shareOnFacebook(context: Context, restaurant: Restaurant) {
