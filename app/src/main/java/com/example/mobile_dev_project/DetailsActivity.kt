@@ -183,7 +183,31 @@ fun DetailsScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // Delete button
+        // Edit button (NEW ADDED)
+        Button(
+            onClick = {
+                if (restaurantId <= 0L) {
+                    Toast.makeText(
+                        context,
+                        "Unable to edit this restaurant",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@Button
+                }
+
+                val intent = Intent(context, EditRestaurantActivity::class.java).apply {
+                    putExtra("id", restaurantId)
+                }
+                context.startActivity(intent)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Edit")
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // Delete button (NEW ADDED)
         Button(
             onClick = {
                 if (restaurantId <= 0L) {
