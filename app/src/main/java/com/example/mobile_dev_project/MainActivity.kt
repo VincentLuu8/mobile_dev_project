@@ -326,7 +326,7 @@ fun AboutScreen() {
         verticalArrangement = Arrangement.Top
     ) {
 
-        Text("About This App", style = MaterialTheme.typography.headlineMedium)
+        Text("Personal Restaurant Guide App", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(16.dp))
 
         Text("Team Members:", fontWeight = FontWeight.Bold)
@@ -335,10 +335,6 @@ fun AboutScreen() {
         Text("• Khaila Franco - 101364236")
         Text("• Regina Slonimsky - 101491915")
         Text("• Vincent Luu - 101239401")
-
-        Spacer(Modifier.height(24.dp))
-
-        Text("Personal Restaurant Guide app for COMP3074.")
     }
 }
 
